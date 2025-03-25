@@ -1,0 +1,21 @@
+{
+  "name": "roxort-coin",
+  "version": "1.0.0",
+  "description": "ROXORT COIN - Telegram Web App Game",
+  "main": "app.js",
+  "scripts": {
+    "start": "serve .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "telegram",
+    "web-app",
+    "game",
+    "clicker"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+} 
