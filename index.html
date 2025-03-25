@@ -9,35 +9,35 @@
 </head>
 <body>
     <div class="container">
-        <!-- Основной экран -->
         <div class="main-screen">
+            <!-- Статистика -->
             <div class="stats">
                 <div class="stat-item">
-                    <span class="stat-label">ROXY:</span>
+                    <span class="stat-label">ROXY</span>
                     <span id="roxy-balance">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Уровень:</span>
+                    <span class="stat-label">Уровень</span>
                     <span id="level">1</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Опыт:</span>
+                    <span class="stat-label">Опыт</span>
                     <span id="experience">0/100</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Клики:</span>
+                    <span class="stat-label">Клики</span>
                     <span id="clicks">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Множитель:</span>
-                    <span id="multiplier">1.0</span>x
+                    <span class="stat-label">Множитель</span>
+                    <span id="multiplier">1.0</span>
                 </div>
             </div>
-            
-            <button id="click-button" class="click-button">
-                <img src="coin.png" alt="ROXY Coin">
-            </button>
-            
+
+            <!-- Кнопка клика -->
+            <button id="click-button" class="click-button"></button>
+
+            <!-- Меню кнопок -->
             <div class="menu-buttons">
                 <button id="shop-button" class="menu-button">Магазин</button>
                 <button id="achievements-button" class="menu-button">Достижения</button>
@@ -46,48 +46,54 @@
                 <button id="referral-button" class="menu-button">Рефералы</button>
             </div>
         </div>
-        
-        <!-- Модальные окна -->
-        <div id="shop-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>Магазин</h2>
-                <!-- Содержимое добавляется динамически -->
-            </div>
-        </div>
-        
-        <div id="achievements-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>Достижения</h2>
-                <!-- Содержимое добавляется динамически -->
-            </div>
-        </div>
-        
-        <div id="minigames-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>Мини-игры</h2>
-                <!-- Содержимое добавляется динамически -->
-            </div>
-        </div>
-        
-        <div id="profile-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>Профиль</h2>
-                <!-- Содержимое добавляется динамически -->
-            </div>
-        </div>
-        
-        <div id="referral-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <!-- Содержимое добавляется динамически -->
-            </div>
+    </div>
+
+    <!-- Модальные окна -->
+    <!-- Магазин -->
+    <div id="shop-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Магазин улучшений</h2>
+            <!-- Содержимое добавляется динамически -->
         </div>
     </div>
-    
+
+    <!-- Достижения -->
+    <div id="achievements-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Достижения</h2>
+            <!-- Содержимое добавляется динамически -->
+        </div>
+    </div>
+
+    <!-- Мини-игры -->
+    <div id="minigames-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Мини-игры</h2>
+            <!-- Содержимое добавляется динамически -->
+        </div>
+    </div>
+
+    <!-- Профиль -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Профиль</h2>
+            <!-- Содержимое добавляется динамически -->
+        </div>
+    </div>
+
+    <!-- Рефералы -->
+    <div id="referral-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Реферальная система</h2>
+            <!-- Содержимое добавляется динамически -->
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html> 
