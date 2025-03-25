@@ -7,7 +7,7 @@ apt upgrade -y
 
 # Установка базовых инструментов
 echo "Установка базовых инструментов..."
-apt install -y software-properties-common
+apt install -y software-properties-common wget gnupg
 
 # Добавление репозитория Node.js
 echo "Добавление репозитория Node.js..."
@@ -15,8 +15,8 @@ curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 
 # Добавление репозитория MongoDB
 echo "Добавление репозитория MongoDB..."
-wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | apt-key add -
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list
 
 # Обновление списка пакетов
 echo "Обновление списка пакетов..."
@@ -29,6 +29,44 @@ apt install -y nginx
 # Установка MongoDB
 echo "Установка MongoDB..."
 apt install -y mongodb-org
+
+# Создание директории для данных MongoDB
+echo "Настройка MongoDB..."
+mkdir -p /var/lib/mongodb
+chown -R mongodb:mongodb /var/lib/mongodb
+
+# Создание systemd сервиса для MongoDB
+cat > /etc/systemd/system/mongod.service << 'EOL'
+[Unit]
+Description=MongoDB Database Service
+Documentation=https://docs.mongodb.org/manual
+After=network.target
+
+[Service]
+Type=simple
+User=mongodb
+Group=mongodb
+ExecStart=/usr/bin/mongod --config /etc/mongod.conf
+PIDFile=/var/run/mongodb/mongod.pid
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Перезагрузка systemd
+systemctl daemon-reload
+
+# Запуск и включение MongoDB
+systemctl start mongod
+systemctl enable mongod
+
+# Проверка статуса MongoDB
+if ! systemctl is-active --quiet mongod; then
+    echo "Ошибка: MongoDB не запущен"
+    systemctl status mongod
+    exit 1
+fi
 
 # Установка Node.js и npm
 echo "Установка Node.js и npm..."
@@ -47,17 +85,6 @@ npm install -g pm2
 # Проверка установки PM2
 if ! command -v pm2 &> /dev/null; then
     echo "Ошибка: PM2 не установлен"
-    exit 1
-fi
-
-# Запуск и включение MongoDB
-echo "Настройка MongoDB..."
-systemctl start mongod
-systemctl enable mongod
-
-# Проверка статуса MongoDB
-if ! systemctl is-active --quiet mongod; then
-    echo "Ошибка: MongoDB не запущен"
     exit 1
 fi
 
