@@ -7,37 +7,59 @@ apt upgrade -y
 
 # Установка базовых инструментов
 echo "Установка базовых инструментов..."
-apt install -y curl wget gnupg
+apt install -y software-properties-common
+
+# Добавление репозитория Node.js
+echo "Добавление репозитория Node.js..."
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 
 # Добавление репозитория MongoDB
 echo "Добавление репозитория MongoDB..."
 wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | apt-key add -
 echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list
 
-# Добавление репозитория Node.js
-echo "Добавление репозитория Node.js..."
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-
 # Обновление списка пакетов
+echo "Обновление списка пакетов..."
 apt update
 
-# Установка системных зависимостей
-echo "Установка системных зависимостей..."
-while read -r line; do
-    if [[ ! "$line" =~ ^#.*$ ]] && [ ! -z "$line" ]; then
-        echo "Установка $line..."
-        apt install -y "$line"
-    fi
-done < system_requirements.txt
+# Установка Nginx
+echo "Установка Nginx..."
+apt install -y nginx
+
+# Установка MongoDB
+echo "Установка MongoDB..."
+apt install -y mongodb-org
+
+# Установка Node.js и npm
+echo "Установка Node.js и npm..."
+apt install -y nodejs
+
+# Проверка установки Node.js
+if ! command -v node &> /dev/null; then
+    echo "Ошибка: Node.js не установлен"
+    exit 1
+fi
 
 # Установка PM2 глобально
 echo "Установка PM2..."
 npm install -g pm2
 
+# Проверка установки PM2
+if ! command -v pm2 &> /dev/null; then
+    echo "Ошибка: PM2 не установлен"
+    exit 1
+fi
+
 # Запуск и включение MongoDB
 echo "Настройка MongoDB..."
 systemctl start mongod
 systemctl enable mongod
+
+# Проверка статуса MongoDB
+if ! systemctl is-active --quiet mongod; then
+    echo "Ошибка: MongoDB не запущен"
+    exit 1
+fi
 
 # Создание директории для приложения
 echo "Настройка директорий..."
@@ -85,6 +107,16 @@ rm -f /etc/nginx/sites-enabled/default
 
 # Перезапуск Nginx
 systemctl restart nginx
+
+# Проверка статуса Nginx
+if ! systemctl is-active --quiet nginx; then
+    echo "Ошибка: Nginx не запущен"
+    exit 1
+fi
+
+# Копирование файлов проекта
+echo "Копирование файлов проекта..."
+cp -r ./* /var/www/roxort-coin/
 
 # Установка Node.js зависимостей
 echo "Установка Node.js зависимостей..."
