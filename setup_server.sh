@@ -5,6 +5,22 @@ echo "Обновление системы..."
 apt update
 apt upgrade -y
 
+# Установка базовых инструментов
+echo "Установка базовых инструментов..."
+apt install -y curl wget gnupg
+
+# Добавление репозитория MongoDB
+echo "Добавление репозитория MongoDB..."
+wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+
+# Добавление репозитория Node.js
+echo "Добавление репозитория Node.js..."
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+
+# Обновление списка пакетов
+apt update
+
 # Установка системных зависимостей
 echo "Установка системных зависимостей..."
 while read -r line; do
@@ -12,12 +28,11 @@ while read -r line; do
         echo "Установка $line..."
         apt install -y "$line"
     fi
-done < requirements.txt
+done < system_requirements.txt
 
-# Установка Node.js зависимостей
-echo "Установка Node.js зависимостей..."
-cd /var/www/roxort-coin
-npm run install-all
+# Установка PM2 глобально
+echo "Установка PM2..."
+npm install -g pm2
 
 # Запуск и включение MongoDB
 echo "Настройка MongoDB..."
@@ -25,11 +40,15 @@ systemctl start mongod
 systemctl enable mongod
 
 # Создание директории для приложения
+echo "Настройка директорий..."
 mkdir -p /var/www/roxort-coin
 chown -R www-data:www-data /var/www/roxort-coin
 
 # Настройка Nginx
 echo "Настройка Nginx..."
+mkdir -p /etc/nginx/sites-available
+mkdir -p /etc/nginx/sites-enabled
+
 cat > /etc/nginx/sites-available/roxort-coin << 'EOL'
 server {
     listen 80;
@@ -66,6 +85,11 @@ rm -f /etc/nginx/sites-enabled/default
 
 # Перезапуск Nginx
 systemctl restart nginx
+
+# Установка Node.js зависимостей
+echo "Установка Node.js зависимостей..."
+cd /var/www/roxort-coin
+npm install
 
 # Запуск приложения через PM2
 echo "Запуск приложения..."

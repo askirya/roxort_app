@@ -1,0 +1,11 @@
+# Системные пакеты
+nginx
+curl
+wget
+
+# MongoDB
+mongodb-org
+
+# Node.js
+nodejs
+npm 
