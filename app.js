@@ -11,17 +11,50 @@ let gameState = {
     multiplier: 1.0,
     upgrades: [],
     achievements: [],
+    referralCode: null,
+    referrals: [],
     referrer: null,
     referralRewardClaimed: false
 };
 
-// Конфигурация
-const API_URL = 'http://d3aef028639d.vps.myjino.ru/api';
+// Конфигурация игры
+const GAME_CONFIG = {
+    maxReferrals: 10,
+    referralReward: 100,
+    friendReward: 50,
+    minLevelForReward: 5,
+    upgrades: {
+        clicker: {
+            name: "Улучшенный кликер",
+            description: "Увеличивает ROXY за клик на 50%",
+            basePrice: 100,
+            multiplier: 1.5
+        },
+        autoClicker: {
+            name: "Авто-кликер",
+            description: "Автоматически кликает каждые 5 минут",
+            basePrice: 500,
+            multiplier: 2
+        },
+        superMultiplier: {
+            name: "Супер множитель",
+            description: "Увеличивает все множители на 100%",
+            basePrice: 1000,
+            multiplier: 3
+        }
+    }
+};
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => {
     // Загрузка состояния игры
     loadGameState();
+    
+    // Генерация реферального кода при первом запуске
+    if (!gameState.referralCode) {
+        gameState.referralCode = generateReferralCode();
+        saveGameState();
+    }
     
     // Инициализация обработчиков событий
     initializeEventListeners();
@@ -29,6 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Обновление UI
     updateUI();
 });
+
+// Генерация реферального кода
+function generateReferralCode() {
+    const userId = tg.initDataUnsafe.user.id;
+    const timestamp = Date.now().toString(36);
+    const randomStr = Math.random().toString(36).substring(2, 5);
+    return `${userId}-${timestamp}-${randomStr}`;
+}
 
 // Инициализация обработчиков событий
 function initializeEventListeners() {
@@ -59,7 +100,7 @@ function handleClick() {
     setTimeout(() => button.classList.remove('click-animation'), 100);
     
     // Обновление состояния
-    gameState.roxy += gameState.multiplier;
+    gameState.roxy += calculateClickReward();
     gameState.clicks++;
     gameState.experience += 1;
     
@@ -71,9 +112,16 @@ function handleClick() {
     
     // Обновление UI
     updateUI();
-    
-    // Отправка данных на сервер
-    sendDataToServer();
+}
+
+// Расчет награды за клик
+function calculateClickReward() {
+    let reward = gameState.multiplier;
+    // Применяем множители от улучшений
+    gameState.upgrades.forEach(upgrade => {
+        reward *= GAME_CONFIG.upgrades[upgrade]?.multiplier || 1;
+    });
+    return reward;
 }
 
 // Проверка повышения уровня
@@ -135,139 +183,84 @@ function loadGameState() {
     }
 }
 
-// Отправка данных на сервер
-async function sendDataToServer() {
-    try {
-        const response = await fetch(`${API_URL}/save-state`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: tg.initDataUnsafe.user.id,
-                gameState: gameState
-            })
-        });
+// Обновление содержимого модального окна магазина
+function updateShopContent() {
+    const modal = document.getElementById('shop-modal');
+    const content = modal.querySelector('.modal-content');
+    
+    let html = '<h2>Магазин улучшений</h2>';
+    
+    for (const [id, upgrade] of Object.entries(GAME_CONFIG.upgrades)) {
+        const owned = gameState.upgrades.includes(id);
+        const price = owned ? 'Куплено' : upgrade.basePrice;
+        const canAfford = gameState.roxy >= upgrade.basePrice;
         
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-    } catch (error) {
-        console.error('Error saving game state:', error);
+        html += `
+            <div class="upgrade-item">
+                <div class="upgrade-header">
+                    <span class="upgrade-name">${upgrade.name}</span>
+                    <span class="upgrade-price">${price}</span>
+                </div>
+                <p class="upgrade-description">${upgrade.description}</p>
+                <button 
+                    onclick="buyUpgrade('${id}')" 
+                    class="buy-button"
+                    ${owned || !canAfford ? 'disabled' : ''}
+                >
+                    ${owned ? 'Куплено' : 'Купить'}
+                </button>
+            </div>
+        `;
     }
+    
+    content.innerHTML = html;
 }
 
-// Функции для работы с реферальной системой
-async function loadReferralData() {
-    try {
-        const response = await fetch(`${API_URL}/referral/code/${tg.initDataUnsafe.user.id}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            return data;
-        } else {
-            throw new Error(data.error);
-        }
-    } catch (error) {
-        console.error('Error loading referral data:', error);
-        showNotification('Ошибка загрузки реферальных данных', 'error');
-        return null;
+// Покупка улучшения
+function buyUpgrade(upgradeId) {
+    const upgrade = GAME_CONFIG.upgrades[upgradeId];
+    if (!upgrade || gameState.upgrades.includes(upgradeId) || gameState.roxy < upgrade.basePrice) {
+        return;
     }
+    
+    gameState.roxy -= upgrade.basePrice;
+    gameState.upgrades.push(upgradeId);
+    saveGameState();
+    updateUI();
+    updateShopContent();
+    showNotification(`Улучшение "${upgrade.name}" куплено!`, 'success');
 }
 
-async function activateReferralCode(code) {
-    try {
-        const response = await fetch(`${API_URL}/referral/activate/${tg.initDataUnsafe.user.id}/${code}`, {
-            method: 'POST'
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            showNotification('Реферальный код успешно активирован!', 'success');
-            updateReferralContent();
-        } else {
-            showNotification(data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error activating referral code:', error);
-        showNotification('Ошибка активации реферального кода', 'error');
-    }
-}
-
-async function loadReferralList() {
-    try {
-        const response = await fetch(`${API_URL}/referral/list/${tg.initDataUnsafe.user.id}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            return data;
-        } else {
-            throw new Error(data.error);
-        }
-    } catch (error) {
-        console.error('Error loading referral list:', error);
-        showNotification('Ошибка загрузки списка рефералов', 'error');
-        return null;
-    }
-}
-
-async function claimReferralReward() {
-    try {
-        const response = await fetch(`${API_URL}/referral/claim/${tg.initDataUnsafe.user.id}`, {
-            method: 'POST'
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            gameState.roxy += data.rewards.user;
-            showNotification(`Получено ${data.rewards.user} ROXY!`, 'success');
-            updateUI();
-            updateReferralContent();
-        } else {
-            showNotification(data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error claiming referral reward:', error);
-        showNotification('Ошибка получения награды', 'error');
-    }
-}
-
-// Обновление содержимого реферального модального окна
-async function updateReferralContent() {
+// Обновление содержимого реферального окна
+function updateReferralContent() {
     const modal = document.getElementById('referral-modal');
     const content = modal.querySelector('.modal-content');
     
-    // Загружаем данные
-    const referralData = await loadReferralData();
-    const referralList = await loadReferralList();
-    
-    if (!referralData || !referralList) return;
-    
-    // Создаем HTML
     let html = `
         <h2>Реферальная система</h2>
         <div class="referral-info">
-            <p>Ваш реферальный код: <strong>${referralData.referralCode}</strong></p>
-            <p>Приглашено друзей: ${referralList.referralCount}/${referralData.maxReferrals}</p>
+            <p>Ваш реферальный код: <strong>${gameState.referralCode}</strong></p>
+            <p>Приглашено друзей: ${gameState.referrals.length}/${GAME_CONFIG.maxReferrals}</p>
         </div>
         
         <div class="referral-input">
             <input type="text" id="referral-code-input" placeholder="Введите реферальный код">
-            <button onclick="activateReferralCode(document.getElementById('referral-code-input').value)">Активировать</button>
+            <button onclick="activateReferralCode(document.getElementById('referral-code-input').value)">
+                Активировать
+            </button>
         </div>
     `;
     
-    // Добавляем список рефералов
-    if (referralList.referrals.length > 0) {
+    if (gameState.referrals.length > 0) {
         html += `
             <div class="referral-list">
                 <h3>Ваши рефералы:</h3>
                 <ul>
-                    ${referralList.referrals.map(ref => `
+                    ${gameState.referrals.map(ref => `
                         <li>
                             <span>${ref.username}</span>
-                            <span>Уровень: ${ref.gameState.level}</span>
-                            <span>ROXY: ${ref.gameState.roxy}</span>
+                            <span>Уровень: ${ref.level}</span>
+                            <span>ROXY: ${ref.roxy}</span>
                         </li>
                     `).join('')}
                 </ul>
@@ -275,16 +268,46 @@ async function updateReferralContent() {
         `;
     }
     
-    // Добавляем кнопку получения награды, если есть реферер и награда не получена
-    if (gameState.referrer && !gameState.referralRewardClaimed) {
-        html += `
-            <div class="referral-reward">
-                <button onclick="claimReferralReward()">Получить награду</button>
-            </div>
-        `;
+    content.innerHTML = html;
+}
+
+// Активация реферального кода
+function activateReferralCode(code) {
+    if (!code) {
+        showNotification('Введите реферальный код', 'error');
+        return;
     }
     
-    content.innerHTML = html;
+    if (gameState.referrer) {
+        showNotification('Вы уже активировали реферальный код', 'error');
+        return;
+    }
+    
+    const [referrerId] = code.split('-');
+    if (referrerId === tg.initDataUnsafe.user.id.toString()) {
+        showNotification('Нельзя использовать свой собственный код', 'error');
+        return;
+    }
+    
+    gameState.referrer = referrerId;
+    gameState.roxy += GAME_CONFIG.friendReward;
+    saveGameState();
+    
+    showNotification(`Реферальный код активирован! Получено ${GAME_CONFIG.friendReward} ROXY`, 'success');
+    updateUI();
+    updateReferralContent();
+}
+
+// Показ уведомлений
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 // Инициализация при первом запуске

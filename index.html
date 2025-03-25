@@ -4,81 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROXORT COIN</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>ROXORT COIN</h1>
-            <div class="balance">
-                <span id="roxy-balance">0</span> ROXY
+        <!-- Основной экран -->
+        <div class="main-screen">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">ROXY:</span>
+                    <span id="roxy-balance">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Уровень:</span>
+                    <span id="level">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Опыт:</span>
+                    <span id="experience">0/100</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Клики:</span>
+                    <span id="clicks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Множитель:</span>
+                    <span id="multiplier">1.0</span>x
+                </div>
+            </div>
+            
+            <button id="click-button" class="click-button">
+                <img src="coin.png" alt="ROXY Coin">
+            </button>
+            
+            <div class="menu-buttons">
+                <button id="shop-button" class="menu-button">Магазин</button>
+                <button id="achievements-button" class="menu-button">Достижения</button>
+                <button id="minigames-button" class="menu-button">Мини-игры</button>
+                <button id="profile-button" class="menu-button">Профиль</button>
+                <button id="referral-button" class="menu-button">Рефералы</button>
             </div>
         </div>
-
-        <div class="clicker-section">
-            <div class="clicker-button" id="click-button">
-                <span>КЛИК</span>
-                <div class="multiplier">x<span id="multiplier">1.0</span></div>
+        
+        <!-- Модальные окна -->
+        <div id="shop-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Магазин</h2>
+                <!-- Содержимое добавляется динамически -->
             </div>
         </div>
-
-        <div class="stats-section">
-            <div class="stat-item">
-                <span>Уровень:</span>
-                <span id="level">1</span>
-            </div>
-            <div class="stat-item">
-                <span>Опыт:</span>
-                <span id="experience">0/100</span>
-            </div>
-            <div class="stat-item">
-                <span>Клики:</span>
-                <span id="clicks">0</span>
+        
+        <div id="achievements-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Достижения</h2>
+                <!-- Содержимое добавляется динамически -->
             </div>
         </div>
-
-        <div class="menu-section">
-            <button class="menu-button" id="shop-button">🏪 Магазин</button>
-            <button class="menu-button" id="achievements-button">🏆 Достижения</button>
-            <button class="menu-button" id="minigames-button">🎯 Мини-игры</button>
-            <button class="menu-button" id="profile-button">👤 Профиль</button>
+        
+        <div id="minigames-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Мини-игры</h2>
+                <!-- Содержимое добавляется динамически -->
+            </div>
+        </div>
+        
+        <div id="profile-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Профиль</h2>
+                <!-- Содержимое добавляется динамически -->
+            </div>
+        </div>
+        
+        <div id="referral-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <!-- Содержимое добавляется динамически -->
+            </div>
         </div>
     </div>
-
-    <!-- Модальные окна -->
-    <div id="shop-modal" class="modal">
-        <div class="modal-content">
-            <h2>Магазин улучшений</h2>
-            <div id="upgrades-list"></div>
-            <button class="close-button">Закрыть</button>
-        </div>
-    </div>
-
-    <div id="achievements-modal" class="modal">
-        <div class="modal-content">
-            <h2>Достижения</h2>
-            <div id="achievements-list"></div>
-            <button class="close-button">Закрыть</button>
-        </div>
-    </div>
-
-    <div id="minigames-modal" class="modal">
-        <div class="modal-content">
-            <h2>Мини-игры</h2>
-            <div id="minigames-list"></div>
-            <button class="close-button">Закрыть</button>
-        </div>
-    </div>
-
-    <div id="profile-modal" class="modal">
-        <div class="modal-content">
-            <h2>Профиль</h2>
-            <div id="profile-info"></div>
-            <button class="close-button">Закрыть</button>
-        </div>
-    </div>
-
+    
     <script src="app.js"></script>
 </body>
 </html> 
